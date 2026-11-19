@@ -1,34 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace FoodExpress.models;
 
-namespace project1.Models
+/// <summary>Defines an application user's role.</summary>
+public enum Role
 {
-    internal class User
+    Customer,
+    Admin
+}
+
+/// <summary>Represents an authenticated FoodExpress user.</summary>
+public abstract class User
+{
+    protected User(string id, string username, string passwordHash, string email, Role role)
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        private string _email;
+        Id = id;
+        Username = username;
+        PasswordHash = passwordHash;
+        Email = email;
+        Role = role;
+    }
 
-        public string Email
-        {
-            get { return _email; }
-            set
-            {
-                if (!value.Contains("@"))
-                {
-                    Console.WriteLine("Email invalid");
-                }
-                _email = value;
-            }
-        }
+    public string Id { get; }
+    public string Username { get; }
+    public string PasswordHash { get; set; }
+    public string Email { get; }
+    public Role Role { get; }
+}
 
-        public string Password { get; set; }
-        public bool IsLogged { get; set; }
+/// <summary>Represents a customer with a cart and order history.</summary>
+public sealed class Customer : User
+{
+    public Customer(string id, string username, string passwordHash, string email, bool isEmailVerified = false)
+        : base(id, username, passwordHash, email, Role.Customer)
+    {
+        IsEmailVerified = isEmailVerified;
+    }
 
-        public override string? ToString()
-        {
-            return base.ToString();
-        }
+    public Cart Cart { get; } = new();
+    public List<Order> Orders { get; } = [];
+    public bool IsEmailVerified { get; set; }
+}
+
+/// <summary>Represents a menu and order administrator.</summary>
+public sealed class Admin : User
+{
+    public Admin(string id, string username, string passwordHash, string email)
+        : base(id, username, passwordHash, email, Role.Admin)
+    {
     }
 }
