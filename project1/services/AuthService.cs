@@ -24,14 +24,7 @@ public sealed class AuthService
             throw new ValidationException("Username, email, and password are required.");
         }
 
-        try
-        {
-            _ = new MailAddress(email);
-        }
-        catch (FormatException)
-        {
-            throw new ValidationException("Enter a valid email address.");
-        }
+        ValidateEmail(email);
 
         if (_users.FindByUsername(username) is not null || _users.FindByEmail(email) is not null)
         {
@@ -44,12 +37,26 @@ public sealed class AuthService
         return customer;
     }
 
-    public User Login(string username, string password)
+    public User Login(string email, string password)
     {
-        User? user = _users.FindByUsername(username);
-        if (user is null || string.IsNullOrEmpty(password) || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        ValidateEmail(email);
+        User? user = _users.FindByEmail(email.Trim());
+        bool passwordMatches = false;
+        if (user is not null && !string.IsNullOrEmpty(password))
         {
-            _logger.Log("WARN", "LOGIN_FAILED", $"username={username}");
+            try
+            {
+                passwordMatches = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log("ERROR", "PASSWORD_HASH_ERROR", ex.ToString());
+            }
+        }
+
+        if (user is null || !passwordMatches)
+        {
+            _logger.Log("WARN", "LOGIN_FAILED", "Invalid email or password.");
             throw new InvalidCredentialsException();
         }
 
@@ -61,5 +68,22 @@ public sealed class AuthService
     {
         int next = _users.GetAll().Select(user => int.TryParse(user.Id, out int id) ? id : 1000).DefaultIfEmpty(1000).Max() + 1;
         return next.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static void ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            throw new InvalidEmailException();
+        }
+
+        try
+        {
+            _ = new MailAddress(email.Trim());
+        }
+        catch (FormatException)
+        {
+            throw new InvalidEmailException();
+        }
     }
 }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using BCrypt.Net;
 using FoodExpress.data;
 using FoodExpress.exception;
 using FoodExpress.models;

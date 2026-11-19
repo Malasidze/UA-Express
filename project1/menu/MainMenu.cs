@@ -102,7 +102,7 @@ public sealed class MainMenu
     {
         try
         {
-            User user = _auth.Login(ReadText("Username: "), ReadText("Password: "));
+            User user = _auth.Login(ReadText("Email: "), ReadText("Password: "));
             if (user is Customer customer)
             {
                 _customerMenu.LoadCart(customer);

@@ -15,6 +15,12 @@ public sealed class ValidationException : FoodExpressException
     public ValidationException(string message) : base(message) { }
 }
 
+/// <summary>Indicates that an email address is missing or malformed.</summary>
+public sealed class InvalidEmailException : FoodExpressException
+{
+    public InvalidEmailException() : base("Enter a valid email address containing the @ symbol.") { }
+}
+
 /// <summary>Indicates authentication failure without revealing the failing field.</summary>
 public sealed class InvalidCredentialsException : FoodExpressException
 {
